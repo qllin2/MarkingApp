@@ -1,43 +1,77 @@
-# MarkingApp by Group 79
+# 📋 MarkingApp
 
-Welcome to the MarkingApp repository!
-This repository is a documentation of all stages of development for the application for Deakin University lecturer
+A production-deployed full-stack web application for managing university marking workflows. Built to handle the coordination overhead between markers, subject coordinators, and students — rubric configuration, grade tracking, analytics, and automated notifications all in one place.
 
-## What you need to do:
-- Install requirements
-- Split terminal
-- Run the starter commands for front and backend at the same time
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat&logo=amazon-aws&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Deployed-46E3B7?style=flat)
 
-## Installing Stuff
-Here's how to install most of the stuff to get it working
+---
+
+## Features
+
+- **Rubric builder** — configurable marking criteria per assignment
+- **Grade entry and tracking** — real-time data entry with validation
+- **Analytics dashboard** — submission statistics and marking progress visualisation
+- **Automated email notifications** — Nodemailer integration for marker and student alerts
+- **Role-based access** — coordinator, marker, and student views
+- **Production deployment** — hosted on Render with AWS-backed infrastructure
+
+---
+
+## Screenshots
+
+> EB to fix
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React + Vite + Tailwind CSS + shadcn/ui |
+| Backend | Node.js + Express REST API |
+| Database | PostgreSQL |
+| Auth | JWT-based authentication |
+| Email | Nodemailer |
+| Deployment | Render + AWS |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js v18+
+- PostgreSQL running locally
+
+### Install & run
 
 ```bash
-  cd backend
-  npm install # Installs all the backend dependencies
-  cd ..
-  cd frontend-vite
-  npm install # Installs the frontend dependencies
-  npm install -D tailwindcss postcss autoprefixer # You might need this if tailwind doesn't install off npm
-  npm install axios react-router-dom # If backend is failing
-  ```
+git clone https://github.com/Ricky042/MarkingApp.git
+cd MarkingApp
 
-  ```bash
-  cd frontend-vite
-  npm run dev # Starts frontend
-  cd .. # Split terminals
-  cd backend
-  node server.js # This will start the server storage stuff
-  ```
-## Extra Notes for Team
-- If using VSCode, install some way to view .db files (I'm using SQLite viewer from the built in market thing)
-- The database is excluded in the .gitignore for now, it creates a new database on startup, so for now database stuff is local only
+# Backend
+cd backend
+npm install
+node server.js
 
-## Quick List of current stack / reqs
-- React
-- Vite
-- Tailwind
-- Nodejs
-- Nodemailer
-- Shadcn
-- SQLite3
-- JWTDecode
+# Frontend (open a new terminal)
+cd frontend-vite
+npm install
+npm run dev
+```
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
+
+---
+
+## Architecture
+
+- **REST API** — Express endpoints for marks, rubrics, analytics, and notifications
+- **PostgreSQL schema** — normalised tables for subjects, assessments, students, markers, and grades
+- **React SPA** — React Router for navigation, Axios for API calls
+- **Environment config** — separate local and production environment variables for safe deployment
