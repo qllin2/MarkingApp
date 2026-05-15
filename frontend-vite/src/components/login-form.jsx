@@ -3,43 +3,50 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../utils/axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function LoginForm({ className, ...props }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [justRegistered, setJustRegistered] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("registered") === "1") {
+      setJustRegistered(true);
+    }
+  }, [location.search]);
 
   const handleLogin = async () => {
     setIsLoading(true);
+    setLoginError("");
     try {
-      // 1. Perform login
       const res = await api.post("/login", { username, password });
 
       if (!res.data.token) {
-        alert(res.data.message || "Login failed: No token received.");
+        setLoginError(res.data.message || "Login failed: No token received.");
         setIsLoading(false);
         return;
       }
 
-      // 2. Set authentication artifacts
       localStorage.setItem("token", res.data.token);
       if (res.data.user) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }
 
-      // 3. Notify the app that authentication has changed
-      // App.jsx will now handle the redirect automatically.
       window.dispatchEvent(new Event("authChange"));
 
     } catch (err) {
       console.error("Login error:", err);
-      alert(err.response?.data?.message || "Login failed");
-      setIsLoading(false); // Ensure loading is stopped on error
+      setLoginError(err.response?.data?.message || "Incorrect email or password.");
+      setIsLoading(false);
     }
     // No need to set isLoading to false here, as the component will unmount upon successful redirect.
   };
@@ -58,6 +65,12 @@ export function LoginForm({ className, ...props }) {
           </div>
         </CardHeader>
         <CardContent>
+          {justRegistered && (
+            <p className="text-green-600 text-sm mb-4">Account created! Please log in.</p>
+          )}
+          {loginError && (
+            <p className="text-red-600 text-sm mb-4">{loginError}</p>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();

@@ -27,8 +27,8 @@ async function sendEmail({ to, subject, text, html }) {
       Simple: {
         Subject: { Data: subject, Charset: 'UTF-8' },
         Body: text
-          ? { Html: { Data: html, Charset: 'UTF-8' } }
-          : { Text: { Data: text, Charset: 'UTF-8' } },
+          ? { Text: { Data: text, Charset: 'UTF-8' } }
+          : { Html: { Data: html, Charset: 'UTF-8' } },
       },
     },
   });
@@ -352,26 +352,6 @@ app.get("/team/:teamId", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch team details" });
   }
 });
-
-// Fetch all members of a team
-/*app.get("/team/:teamId/members", authenticateToken, async (req, res) => {
-  const { teamId } = req.params;
-  try {
-    const result = await pool.query(
-      `SELECT u.id,u.username,tm.role
-       FROM team_members tm
-       JOIN users u ON tm.user_id=u.id
-       WHERE tm.team_id=$1`,
-      [teamId]
-    );
-
-    if (result.rows.length === 0) return res.status(404).json({ error: "No team members found" });
-    res.json({ members: result.rows });
-  } catch (err) {
-    console.error("Failed to fetch team members:", err);
-    res.status(500).json({ error: "Failed to fetch team members" });
-  }
-});*/
 
 app.get("/team/:teamId/members", authenticateToken, async (req, res) => {
   const { teamId } = req.params;
@@ -937,7 +917,7 @@ app.post("/assignments", authenticateToken,
       }
 
       // STEP 4.5: Send email notifications to assigned markers
-      if (markers?.length > 0 && resend) {
+      if (markers?.length > 0) {
         try {
           // Get marker emails using parameterized query
           const placeholders = markers.map((_, i) => `$${i + 1}`).join(',');
@@ -1099,37 +1079,6 @@ app.delete("/assignments/:id", authenticateToken, async (req, res) => {
 ////////////////////////////////////////////////////////////////////
 // Admin Comments on Rubric Criteria
 ////////////////////////////////////////////////////////////////////
-
-
-/*app.post("/team/:teamId/assignments/:assignmentId/rubric-criteria/:criterionId/admin-comment", authenticateToken, async (req, res) => {
-  const { teamId, assignmentId, criterionId } = req.params;
-  const { adminComment } = req.body;
-  //console.log("Updating admin comment:", { teamId, assignmentId, criterionId, adminComment });
-  try {
-    const result = await pool.query(`
-      UPDATE rubric_criteria 
-      SET admin_comments = $1
-      WHERE id = $2 AND assignment_id = $3
-      RETURNING id, criterion_description, points, deviation_threshold, admin_comments
-    `, [adminComment, criterionId, assignmentId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Rubric criterion not found" });
-    }
-
-    res.json({
-      message: "Admin comment updated successfully",
-      rubricCriterion: result.rows[0]
-    });
-
-
-  } catch (err) {
-    console.error("Error updating admin comment:", err);
-    res.status(500).json({ message: "Failed to update admin comment." });
-  }
-});*/
-
-
 
 app.post("/team/:teamId/assignments/:assignmentId/rubric-criteria/:criterionId/admin-comment", authenticateToken, async (req, res) => {
   const { teamId, assignmentId, criterionId } = req.params;
@@ -2252,7 +2201,7 @@ app.delete("/team/:teamId/markers/:userId", authenticateToken, async (req, res) 
 //  Sends email reminders to tutors 7, 3, and 1 days before deadline
 
 async function sendDeadlineReminders() {
-  if (!resend) {
+  if (!sesClient) {
     console.log("Resend not configured, skipping deadline reminders");
     return;
   }

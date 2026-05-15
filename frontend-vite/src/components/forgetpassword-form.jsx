@@ -36,22 +36,22 @@ export function ForgetPasswordForm({
     }
     return () => clearTimeout(timer);
   }, [cooldown]);
-  
+
   // Live validation
   useEffect(() => {
     const newErrors = {};
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Please enter a valid email address.";
     }
-    if (password && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/.test(password)) {
-      newErrors.password = "Password must be ≥6 chars, with uppercase, lowercase, and number/symbol.";
+    if (password && password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters.";
     }
     if (confirmPassword && password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match.";
     }
     setErrors(newErrors);
   }, [email, password, confirmPassword]);
-  
+
 
   // Send verification code
   const sendCode = async () => {
@@ -65,7 +65,7 @@ export function ForgetPasswordForm({
       if (!checkRes.data.exists) {
         setServerError("User not found");
         setLoading(false);
-        return; 
+        return;
       }
 
       // Then send code
@@ -73,10 +73,10 @@ export function ForgetPasswordForm({
       alert("Verification code sent to your email");
       setStep(2);
       setCooldown(30); // 30s before resend
-    } 
+    }
     catch (err) {
       setServerError(err.response?.data?.message || "Failed to send code");
-    } 
+    }
     finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ export function ForgetPasswordForm({
     try {
       setLoading(true);
       setServerError("");
-      const res = await api.post("/forgetpassword", { email, password});
+      const res = await api.post("/forgetpassword", { email, password });
       alert(res.data.message);
       navigate("/login");
     } catch (err) {
@@ -115,8 +115,8 @@ export function ForgetPasswordForm({
     }
   };
 
-return (
-      <div className={cn("flex flex-col gap-6", className)} {...props}>
+  return (
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="border-0">
         <CardHeader className="items-start">
           <div className="relative h-11 pl-1 flex items-start justify-start">

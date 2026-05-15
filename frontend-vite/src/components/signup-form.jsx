@@ -39,9 +39,8 @@ export function SignupForm({ className, ...props }) {
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Please enter a valid email address.";
     }
-    if (password && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/.test(password)) {
-      newErrors.password =
-        "Password must be ≥6 chars, with uppercase, lowercase, and number/symbol.";
+    if (password && password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters.";
     }
     if (confirmPassword && password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match.";
@@ -96,11 +95,10 @@ export function SignupForm({ className, ...props }) {
     try {
       setLoading(true);
       setServerError("");
-      const res = await api.post("/verify-code", { email, password, code });
-      alert(res.data.message);
-      navigate("/login");
+      await api.post("/verify-code", { email, password, code });
+      navigate("/login?registered=1");
     } catch (err) {
-      setServerError(err.response?.data?.message || "Signup failed");
+      setServerError(err.response?.data?.message || "Invalid or expired code. Please try again.");
     } finally {
       setLoading(false);
     }
