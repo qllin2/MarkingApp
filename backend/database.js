@@ -4,11 +4,13 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const shouldUseSSL =
+  process.env.DATABASE_URL &&
+  /render\.com|amazonaws\.com|supabase\.co|azure\.com/i.test(process.env.DATABASE_URL);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
+  ssl: shouldUseSSL ? { rejectUnauthorized: false } : false,
 });
 
 async function initDB() {

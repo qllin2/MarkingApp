@@ -15,8 +15,26 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("./database.js");
 //const nodemailer = require("nodemailer");
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const { SESv2Client, SendEmailCommand } = require('@aws-sdk/client-sesv2');
+const sesClient = new SESv2Client({ region: process.env.AWS_REGION });
+
+// Helper function to send email via AWS SES. Replaces resend.emails.send() throughout the file.
+async function sendEmail({ to, subject, text, html }) {
+  const command = new SendEmailCommand({
+    FromEmailAddress: process.env.EMAIL_DOMAIN,
+    Destination: { ToAddresses: [to] },
+    Content: {
+      Simple: {
+        Subject: { Data: subject, Charset: 'UTF-8' },
+        Body: text
+          ? { Html: { Data: html, Charset: 'UTF-8' } }
+          : { Text: { Data: text, Charset: 'UTF-8' } },
+      },
+    },
+  });
+  return sesClient.send(command);
+}
+
 const path = require("path");
 const cron = require("node-cron");
 
@@ -119,8 +137,7 @@ app.post("/send-code", async (req, res) => {
   verificationCodes[email] = { code, expires: Date.now() + 10 * 60 * 1000 };
 
   try {
-    await resend.emails.send({
-      from: process.env.EMAIL_DOMAIN,
+    await sendEmail({
       to: email,
       subject: "Your verification code",
       text: `Your verification code is: ${code}. This code will expire in 10 minutes`,
@@ -246,8 +263,7 @@ app.post("/resend-code", async (req, res) => {
   verificationCodes[email] = { code, expires: Date.now() + 5 * 60 * 1000 };
 
   try {
-    await resend.emails.send({
-      from: process.env.EMAIL_DOMAIN,
+    await sendEmail({
       to: email,
       subject: "Your verification code",
       text: `Your code is: ${code}. This code will expire in 5 minutes`,
@@ -582,11 +598,10 @@ app.post("/team/:teamId/invite", authenticateToken, async (req, res) => {
       `;
 
       try {
-        await resend.emails.send({
-          from: process.env.EMAIL_DOMAIN,
+        await sendEmail({
           to: email,
           subject: "You're invited to join a team!",
-          html: emailHtml,
+          html: emailHtml
         });
         results.push({ email, status: "sent" });
       } catch (emailErr) {
@@ -1027,8 +1042,7 @@ app.post("/assignments", authenticateToken,
           // Send emails to each marker
           for (const marker of markerEmailsResult.rows) {
             try {
-              await resend.emails.send({
-                from: process.env.EMAIL_DOMAIN,
+              await sendEmail({
                 to: marker.username,
                 subject: `New Assignment: ${assignmentDetails.courseName} (${assignmentDetails.courseCode})`,
                 text: `You have been assigned as a marker for a new assignment:\n\n` +
@@ -1286,8 +1300,7 @@ async function sendEmailNotificationToTutors(teamId, assignmentId, criterionId, 
       //console.log(`Email domain used: ${process.env.EMAIL_DOMAIN}`);
       try {
 
-        const emailData = await resend.emails.send({
-          from: process.env.EMAIL_DOMAIN,
+        const emailData = await sendEmail({
           to: tutor.email,
           subject: `New Admin Comment - ${assignment.course_code} ${assignment.course_name}`,
           html: `
@@ -2431,8 +2444,7 @@ async function sendDeadlineReminders() {
             day: 'numeric'
           });
 
-          await resend.emails.send({
-            from: process.env.EMAIL_DOMAIN,
+          await sendEmail({
             to: marker.username,
             subject: `Reminder: Assignment due in ${bucketDay} day${bucketDay > 1 ? 's' : ''} - ${assignment.course_name} (${assignment.course_code})`,
             text: `This is a reminder that you have been assigned as a marker for an assignment that is due in ${bucketDay} day${bucketDay > 1 ? 's' : ''}.\n\n` +
@@ -2526,10 +2538,9 @@ app.post('/assignments/:assignmentId/markers/:tutorId/criteria/:criterionId/comm
     const teamId = asgRes.rows?.[0]?.team_id;
     const criterionName = critRes.rows?.[0]?.criterion_description;
 
-    if (resend && tutorEmail) {
+    if (tutorEmail) {
       try {
-        await resend.emails.send({
-          from: process.env.EMAIL_DOMAIN,
+        await sendEmail({
           to: tutorEmail,
           subject: `Coordinator note on ${courseName} (${courseCode}) - ${criterionName}`,
           text: `You have a new coordinator note on your marking for the criterion: ${criterionName}.\n\n` +
