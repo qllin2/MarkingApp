@@ -8,3 +8,5 @@ frontend-vite/.env
 
 .vscode/
 users.session.sql
+
+dev-docs/
