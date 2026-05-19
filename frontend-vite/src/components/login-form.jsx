@@ -22,6 +22,12 @@ export function LoginForm({ className, ...props }) {
     if (params.get("registered") === "1") {
       setJustRegistered(true);
     }
+    if (params.get("email")) {
+      setUsername(params.get("email"));
+    }
+    if (params.get("password")) {
+      setPassword(params.get("password"));
+    }
   }, [location.search]);
 
   const handleLogin = async () => {
@@ -58,8 +64,8 @@ export function LoginForm({ className, ...props }) {
           <div className="relative h-11 pl-1 flex items-start justify-start">
             <img src="/logo_black.png" alt="Logo" className="w-[140px] h-fit object-contain" />
           </div>
-       
-          
+
+
           <div className="text-sm text-muted-foreground">
             Login to your assignment marking portal
           </div>
