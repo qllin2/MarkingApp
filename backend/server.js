@@ -53,7 +53,8 @@ const verificationCodes = {};
 // Middleware Setup
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://markingapp-frontend.onrender.com"
+  "https://markingapp-frontend.onrender.com",
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL.replace(/\/$/, "")] : []),
 ];
 
 app.use(
